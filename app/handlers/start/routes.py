@@ -1,9 +1,10 @@
 from aiogram import Router, F
 from aiogram.filters import CommandStart
-from aiogram.types import Message, CallbackQuery
+from aiogram.types import Message
 
 import app.handlers.start.keyboards as kb
 from app.database.requests import set_user
+from app.handlers.main.keyboards import main_keyboard
 from app.template_enviroment import env
 
 main_router = Router()
@@ -16,7 +17,10 @@ async def start(message: Message):
     plaintext = template.render(
         user=user,
     )
-    await message.answer(plaintext, reply_markup=kb.main)
+    if not user:
+        await message.answer(plaintext, reply_markup=kb.main)
+    else:
+        await message.answer(plaintext, reply_markup=main_keyboard)
 
 
 @main_router.message(F.text == "FAQ об университете")
@@ -31,5 +35,3 @@ async def contacts(message: Message):
     template = env.get_template("contacts.txt")
     plaintext = template.render()
     await message.answer(plaintext, reply_markup=kb.main)
-
-

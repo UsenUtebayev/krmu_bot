@@ -2,8 +2,8 @@ import asyncio
 import logging
 
 from aiogram import Bot, Dispatcher
-from aiogram.types import Message
 
+from app.handlers.bot.routes import bot_router
 from app.handlers.registration.routes import registration_router
 from app.handlers.start.routes import main_router
 from app.not_found import not_found_router
@@ -21,6 +21,7 @@ async def main():
     dp = Dispatcher()
     dp.include_router(main_router)
     dp.include_router(registration_router)
+    dp.include_router(bot_router)
     dp.include_router(not_found_router)
 
     await dp.start_polling(bot)

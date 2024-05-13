@@ -1,8 +1,9 @@
 from aiogram import Router, F
 from aiogram.fsm.context import FSMContext
-from aiogram.types import Message, ReplyKeyboardRemove, ReplyKeyboardMarkup, KeyboardButton
+from aiogram.types import Message, ReplyKeyboardMarkup, KeyboardButton
 
-from app.database.requests import get_all_major
+from app.database.requests import get_all_major, add_user_information, get_user
+from app.handlers.main.keyboards import main_keyboard
 from app.handlers.registration.keyboards import position_keyboard, degree_keyboard, position_texts, degree_texts, \
     get_number
 from app.handlers.registration.states import Registration
@@ -15,6 +16,10 @@ registration_router = Router()
     F.text == "Зарегистрироваться",
 )
 async def register(message: Message, state: FSMContext):
+    user = get_user(tg_id=message.from_user.id)
+    if user.is_questioned:
+        await message.reply('Вы уже зарегистрированиы в системе! Для изменения своих данных введите /update_me')
+        return
     await state.set_state(Registration.first_name)
     temp_keyboard = ReplyKeyboardMarkup(keyboard=[
         [KeyboardButton(text=f"{message.from_user.first_name}")],
@@ -117,7 +122,7 @@ async def register_major(message: Message, state: FSMContext):
 @registration_router.message(Registration.number, F.contact)
 async def register_number(message: Message, state: FSMContext):
     await state.update_data(number=message.contact.phone_number)
-    user_data = await state.get_state()
-
-    await message.answer("Вы успешно зарегистрировались в нашем боте!")
+    user_data = await state.get_data()
+    add_user_information(message.from_user.id, user_data)
+    await message.answer("Вы успешно зарегистрировались!", reply_markup=main_keyboard)
     await state.clear()
